@@ -118,6 +118,180 @@ class GenerateCode
         return $code;
     }
 
+    public function genSwgAnnotation4AdminController($table_name = '', $function_name = '') {
+        $code = '';
+        $tables = $this->_getTableComment(strtolower($table_name));
+        $column_comment = $this->_getTableConstruct(strtolower($table_name));
+        $table_create_sql = $tables[0][1];
+        $table_comment = '';
+        if (preg_match_all('/COMMENT=\'(.*)\'/Usi', $table_create_sql, $arr)) {
+            $table_comment = $arr[1][0];
+        }
+        if (strpos($function_name, 'create') !== false || strpos($function_name, 'edit') !== false
+            || strpos($function_name, 'delete') !== false) {
+            $code .= "\r\n    /**";
+            if (strpos($function_name, 'edit') !== false) {
+                $code .= "\r\n     * @SWG\PUT(";
+                $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/edit\",";
+                $code .= "\r\n     *     summary=\"编辑" . $table_comment . "接口\",";
+            } else if (strpos($function_name, 'delete') !== false) {
+                $code .= "\r\n     * @SWG\DELETE(";
+                $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/delete\",";
+                $code .= "\r\n     *     summary=\"编辑" . $table_comment . "接口\",";
+            } else if (strpos($function_name, 'create') !== false) {
+                $code .= "\r\n     * @SWG\POST(";
+                $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/create\",";
+                $code .= "\r\n     *     summary=\"创建" . $table_comment . "接口\",";
+            }
+            $code .= "\r\n     *     description=\"\",";
+            $code .= "\r\n     *     @SWG\Parameter(";
+            $code .= "\r\n     *          name=\"Authorization\",";
+            $code .= "\r\n     *          description=\"Authorization 登录接口返回的jwt字段的值\",";
+            $code .= "\r\n     *          in=\"header\",";
+            $code .= "\r\n     *          required=true,";
+            $code .= "\r\n     *          type=\"string\"";
+            $code .= "\r\n     *     ),";
+
+            foreach ($column_comment as $info) {
+                if (strpos($function_name, 'create') === false && $info['Key'] === 'PRI') {
+                    $code .= "\r\n     *     @SWG\Parameter(".
+                        "\r\n     *          name=\"" . $info['Field'] . "\",".
+                        "\r\n     *          description=\"/admin/" . $table_name . "/list接口返回的id字段的值\",".
+                        "\r\n     *          in=\"path\",".
+                        "\r\n     *          required=true,".
+                        "\r\n     *          type=\"string\"".
+                        "\r\n     *     ),";
+                }
+
+
+                if (strpos($function_name, 'delete') === false) {
+                    if (! in_array($info['Field'], ['created_by', 'updated_at', 'created_at', 'updated_by']) && $info['Type'] !== 'timestamp' && $info['Extra'] !== 'auto_increment') {
+                        $code .= "\r\n     *     @SWG\Parameter(";
+                        $code .= "\r\n     *          name=\"" . $info['Field'] . "\",";
+                        $code .= "\r\n     *          description=\"" . $info['Comment'] . "\",";
+                        $code .= "\r\n     *          in=\"formData\",";
+                        $code .= "\r\n     *          required=" . (strpos($function_name, 'create') !== false ? 'true' : 'false') . ",";
+                        switch ($info['type']) {
+                            case 'int unsigned':
+                                $type = 'integer';
+                                break;
+                            default:
+                                $type = 'string';
+                                break;
+                        }
+                        $code .= "\r\n     *          type=\"" . $type . "\"";
+                        $code .= "\r\n     *     ),";
+                        $code .= "\r\n     *     @SWG\Parameter(";
+                        $code .= "\r\n     *          name=\"sign\",";
+                        $code .= "\r\n     *          description=\"签名\",";
+                        $code .= "\r\n     *          in=\"formData\",";
+                        $code .= "\r\n     *          required=true,";
+                        $code .= "\r\n     *          type=\"string\"";
+                        $code .= "\r\n     *     ),";
+                    }
+                }
+            }
+
+
+            if (strpos($function_name, 'delete') !== false) {
+                $code .= "\r\n     *     @SWG\Response(" .
+                         "\r\n     *         response=\"200\"," .
+                         "\r\n     *         description=\"删除成功, 没有返回结果\"" .
+                         "\r\n     *     ),";
+            } else {
+                $code .= "\r\n     *     @SWG\Response(".
+                    "\r\n     *         response=\"" . (strpos($function_name, 'create') !== false ? '201' : '200') . "\",".
+                    "\r\n     *         description=\"请求成功\",".
+                    "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "SingleData\")" .
+                    "\r\n     *     ),".
+                    "\r\n     *     @SWG\Response(".
+                    "\r\n     *         response=\"422\",".
+                    "\r\n     *         description=\"" . (strpos($function_name, 'edit') !== false ? "编辑" : "创建") . "失败\"".
+                    "\r\n     *     )";
+            }
+            $code .= "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"400\",".
+                "\r\n     *         description=\"签名不存在或无效签名\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"401\",".
+                "\r\n     *         description=\"jwt无效或过期，需要登录\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"403\",".
+                "\r\n     *         description=\"无权访问\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"404\",".
+                "\r\n     *         description=\"找不到数据\"".
+                "\r\n     *     ),".
+                "\r\n     * )".
+                "\r\n     */".
+                "\r\n";
+
+        } else {
+            $code .= "\r\n    /**";
+            $code .= "\r\n     * @SWG\Get(";
+            $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/list\",";
+            $code .= "\r\n     *     summary=\"获取" . $table_comment . "列表数据接口\",";
+            $code .= "\r\n     *     @SWG\Parameter(" .
+                     "\r\n     *          name=\"page\"," .
+                     "\r\n     *          description=\"页码\",".
+                     "\r\n     *          in=\"query\"," .
+                     "\r\n     *          required=true,".
+                     "\r\n     *          type=\"string\"" .
+                     "\r\n     *     ),".
+                     "\r\n     *     @SWG\Parameter(".
+                     "\r\n     *          name=\"page_size\",".
+                     "\r\n     *          description=\"每页显示条数\",".
+                     "\r\n     *          in=\"query\",".
+                     "\r\n     *          required=true,".
+                     "\r\n     *          type=\"string\"".
+                     "\r\n     *     ),".
+                     "\r\n     *     @SWG\Parameter(".
+                     "\r\n     *          name=\"sort\",".
+                     "\r\n     *          description=\"排序方式 可选值: desc|asc\"," .
+                     "\r\n     *          in=\"query\"," .
+                     "\r\n     *          required=true," .
+                     "\r\n     *          type=\"string\"" .
+                     "\r\n     *     )," .
+                     "\r\n     *     @SWG\Parameter(" .
+                     "\r\n     *          name=\"order\"," .
+                     "\r\n     *          description=\"排序字段 可选值: id\"," .
+                     "\r\n     *          in=\"query\"," .
+                     "\r\n     *          required=true," .
+                     "\r\n     *          type=\"string\"" .
+                     "\r\n     *     ),"."\r\n     *     @SWG\Response(".
+                     "\r\n     *         response=\"200\",".
+                     "\r\n     *         description=\"请求成功\",".
+                     "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "ListData\")".
+                     "\r\n     *     ),".
+                     "\r\n     *     @SWG\Response(".
+                     "\r\n     *         response=\"400\",".
+                     "\r\n     *         description=\"签名不存在或无效签名\"".
+                     "\r\n     *     ),".
+                     "\r\n     *     @SWG\Response(".
+                     "\r\n     *         response=\"401\",".
+                     "\r\n     *         description=\"jwt无效或过期，需要登录\"".
+                     "\r\n     *     ),".
+                     "\r\n     *     @SWG\Response(".
+                     "\r\n     *         response=\"403\",".
+                     "\r\n     *         description=\"无权访问\"".
+                     "\r\n     *     ),".
+                     "\r\n     *     @SWG\Response(".
+                     "\r\n     *         response=\"404\",".
+                     "\r\n     *         description=\"找不到数据\"".
+                     "\r\n     *     )".
+                     "\r\n     * )".
+                     "\r\n     */".
+                     "\r\n";
+        }
+
+        return $code;
+//        var_dump($table_name);
+//        exit();
+    }
+
     public function genSwgAnnotation($table_name = ''){
         $code = '';
         if(! empty($table_name)){

@@ -17,7 +17,8 @@ class GenerateCrud
         'model' => BASEPATH . 'application/models/DAO/#table_name#Model.php',
         'service' => BASEPATH.'application/models/Service/#table_name#Service.php',
         'transformer' => BASEPATH . 'application/models/Transformer/#table_name#Transformer.php',
-        'exception' => BASEPATH . 'application/models/Exception/Business/#table_name#Exception.php'
+        'exception' => BASEPATH . 'application/models/Exception/Business/#table_name#Exception.php',
+        'controller' => BASEPATH . 'application/modules/Admin/controller/#table_name#Controller.php'
     ];
 
     /**
@@ -28,7 +29,8 @@ class GenerateCrud
         'Model',
         'Service',
         'Transformer',
-        'Exception'
+        'Exception',
+        'Controller'
     ];
 
 
@@ -186,6 +188,7 @@ class GenerateCrud
         $service = new GenerateService();
         $transformer = new GenerateTransformer();
         $exception = new GenerateException();
+        $controller = new GenerateController();
 
         $code = '';
         foreach($this->_code_arr as $type){
@@ -201,6 +204,9 @@ class GenerateCrud
                         break;
                     case 'Exception';
                         $code = $exception->generatedExceptionCode($file_path);
+                        break;
+                    case 'Controller':
+                        $code = $controller->generatedControllersCode($file_path);
                         break;
                     default:
                         $code = $model->generatedModelCode($file_path);
