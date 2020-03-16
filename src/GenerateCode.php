@@ -131,16 +131,19 @@ class GenerateCode
             || strpos($function_name, 'delete') !== false) {
             $code .= "\r\n    /**";
             if (strpos($function_name, 'edit') !== false) {
-                $code .= "\r\n     * @SWG\PUT(";
+                $code .= "\r\n     * @SWG\Put(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/edit\",";
+                $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
                 $code .= "\r\n     *     summary=\"编辑" . $table_comment . "接口\",";
             } else if (strpos($function_name, 'delete') !== false) {
                 $code .= "\r\n     * @SWG\DELETE(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/delete\",";
+                $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
                 $code .= "\r\n     *     summary=\"编辑" . $table_comment . "接口\",";
             } else if (strpos($function_name, 'create') !== false) {
-                $code .= "\r\n     * @SWG\POST(";
+                $code .= "\r\n     * @SWG\Post(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/create\",";
+                $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
                 $code .= "\r\n     *     summary=\"创建" . $table_comment . "接口\",";
             }
             $code .= "\r\n     *     description=\"\",";
@@ -187,23 +190,24 @@ class GenerateCode
 
                         $code .= "\r\n     *          type=\"" . $type . "\"";
                         $code .= "\r\n     *     ),";
-                        $code .= "\r\n     *     @SWG\Parameter(";
-                        $code .= "\r\n     *          name=\"sign\",";
-                        $code .= "\r\n     *          description=\"签名\",";
-                        $code .= "\r\n     *          in=\"formData\",";
-                        $code .= "\r\n     *          required=true,";
-                        $code .= "\r\n     *          type=\"string\"";
-                        $code .= "\r\n     *     ),";
                     }
                 }
             }
 
 
+            $code .= "\r\n     *     @SWG\Parameter(";
+            $code .= "\r\n     *          name=\"sign\",";
+            $code .= "\r\n     *          description=\"签名\",";
+            $code .= "\r\n     *          in=\"formData\",";
+            $code .= "\r\n     *          required=true,";
+            $code .= "\r\n     *          type=\"string\"";
+            $code .= "\r\n     *     ),";
+
             if (strpos($function_name, 'delete') !== false) {
                 $code .= "\r\n     *     @SWG\Response(" .
-                         "\r\n     *         response=\"200\"," .
-                         "\r\n     *         description=\"删除成功, 没有返回结果\"" .
-                         "\r\n     *     ),";
+                    "\r\n     *         response=\"200\"," .
+                    "\r\n     *         description=\"删除成功, 没有返回结果\"" .
+                    "\r\n     *     ),";
             } else {
                 $code .= "\r\n     *     @SWG\Response(".
                     "\r\n     *         response=\"" . (strpos($function_name, 'create') !== false ? '201' : '200') . "\",".
@@ -213,7 +217,7 @@ class GenerateCode
                     "\r\n     *     @SWG\Response(".
                     "\r\n     *         response=\"422\",".
                     "\r\n     *         description=\"" . (strpos($function_name, 'edit') !== false ? "编辑" : "创建") . "失败\"".
-                    "\r\n     *     )";
+                    "\r\n     *     ),";
             }
             $code .= "\r\n     *     @SWG\Response(".
                 "\r\n     *         response=\"400\",".
@@ -230,7 +234,7 @@ class GenerateCode
                 "\r\n     *     @SWG\Response(".
                 "\r\n     *         response=\"404\",".
                 "\r\n     *         description=\"找不到数据\"".
-                "\r\n     *     ),".
+                "\r\n     *     )".
                 "\r\n     * )".
                 "\r\n     */".
                 "\r\n";
@@ -239,58 +243,59 @@ class GenerateCode
             $code .= "\r\n    /**";
             $code .= "\r\n     * @SWG\Get(";
             $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/list\",";
+            $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
             $code .= "\r\n     *     summary=\"获取" . $table_comment . "列表数据接口\",";
             $code .= "\r\n     *     @SWG\Parameter(" .
-                     "\r\n     *          name=\"page\"," .
-                     "\r\n     *          description=\"页码\",".
-                     "\r\n     *          in=\"query\"," .
-                     "\r\n     *          required=true,".
-                     "\r\n     *          type=\"string\"" .
-                     "\r\n     *     ),".
-                     "\r\n     *     @SWG\Parameter(".
-                     "\r\n     *          name=\"page_size\",".
-                     "\r\n     *          description=\"每页显示条数\",".
-                     "\r\n     *          in=\"query\",".
-                     "\r\n     *          required=true,".
-                     "\r\n     *          type=\"string\"".
-                     "\r\n     *     ),".
-                     "\r\n     *     @SWG\Parameter(".
-                     "\r\n     *          name=\"sort\",".
-                     "\r\n     *          description=\"排序方式 可选值: desc|asc\"," .
-                     "\r\n     *          in=\"query\"," .
-                     "\r\n     *          required=true," .
-                     "\r\n     *          type=\"string\"" .
-                     "\r\n     *     )," .
-                     "\r\n     *     @SWG\Parameter(" .
-                     "\r\n     *          name=\"order\"," .
-                     "\r\n     *          description=\"排序字段 可选值: id\"," .
-                     "\r\n     *          in=\"query\"," .
-                     "\r\n     *          required=true," .
-                     "\r\n     *          type=\"string\"" .
-                     "\r\n     *     ),"."\r\n     *     @SWG\Response(".
-                     "\r\n     *         response=\"200\",".
-                     "\r\n     *         description=\"请求成功\",".
-                     "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "ListData\")".
-                     "\r\n     *     ),".
-                     "\r\n     *     @SWG\Response(".
-                     "\r\n     *         response=\"400\",".
-                     "\r\n     *         description=\"签名不存在或无效签名\"".
-                     "\r\n     *     ),".
-                     "\r\n     *     @SWG\Response(".
-                     "\r\n     *         response=\"401\",".
-                     "\r\n     *         description=\"jwt无效或过期，需要登录\"".
-                     "\r\n     *     ),".
-                     "\r\n     *     @SWG\Response(".
-                     "\r\n     *         response=\"403\",".
-                     "\r\n     *         description=\"无权访问\"".
-                     "\r\n     *     ),".
-                     "\r\n     *     @SWG\Response(".
-                     "\r\n     *         response=\"404\",".
-                     "\r\n     *         description=\"找不到数据\"".
-                     "\r\n     *     )".
-                     "\r\n     * )".
-                     "\r\n     */".
-                     "\r\n";
+                "\r\n     *          name=\"page\"," .
+                "\r\n     *          description=\"页码\",".
+                "\r\n     *          in=\"query\"," .
+                "\r\n     *          required=true,".
+                "\r\n     *          type=\"string\"" .
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Parameter(".
+                "\r\n     *          name=\"page_size\",".
+                "\r\n     *          description=\"每页显示条数\",".
+                "\r\n     *          in=\"query\",".
+                "\r\n     *          required=true,".
+                "\r\n     *          type=\"string\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Parameter(".
+                "\r\n     *          name=\"sort\",".
+                "\r\n     *          description=\"排序方式 可选值: desc|asc\"," .
+                "\r\n     *          in=\"query\"," .
+                "\r\n     *          required=true," .
+                "\r\n     *          type=\"string\"" .
+                "\r\n     *     )," .
+                "\r\n     *     @SWG\Parameter(" .
+                "\r\n     *          name=\"order\"," .
+                "\r\n     *          description=\"排序字段 可选值: id\"," .
+                "\r\n     *          in=\"query\"," .
+                "\r\n     *          required=true," .
+                "\r\n     *          type=\"string\"" .
+                "\r\n     *     ),"."\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"200\",".
+                "\r\n     *         description=\"请求成功\",".
+                "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "ListData\")".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"400\",".
+                "\r\n     *         description=\"签名不存在或无效签名\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"401\",".
+                "\r\n     *         description=\"jwt无效或过期，需要登录\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"403\",".
+                "\r\n     *         description=\"无权访问\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
+                "\r\n     *         response=\"404\",".
+                "\r\n     *         description=\"找不到数据\"".
+                "\r\n     *     )".
+                "\r\n     * )".
+                "\r\n     */".
+                "\r\n";
         }
 
         return $code;
