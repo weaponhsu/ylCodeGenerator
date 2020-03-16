@@ -171,14 +171,20 @@ class GenerateCode
                         $code .= "\r\n     *          description=\"" . $info['Comment'] . "\",";
                         $code .= "\r\n     *          in=\"formData\",";
                         $code .= "\r\n     *          required=" . (strpos($function_name, 'create') !== false ? 'true' : 'false') . ",";
-                        switch ($info['type']) {
-                            case 'int unsigned':
-                                $type = 'integer';
-                                break;
-                            default:
-                                $type = 'string';
-                                break;
-                        }
+                        if (isset($info['type'])) {
+                            switch ($info['type']) {
+                                case 'int unsigned':
+                                case 'tinyint unsigned':
+                                case 'smallint unsigned':
+                                    $type = 'integer';
+                                    break;
+                                default:
+                                    $type = 'string';
+                                    break;
+                            }
+                        } else
+                            $type = 'string';
+
                         $code .= "\r\n     *          type=\"" . $type . "\"";
                         $code .= "\r\n     *     ),";
                         $code .= "\r\n     *     @SWG\Parameter(";

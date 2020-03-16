@@ -18,7 +18,7 @@ class GenerateCrud
         'service' => BASEPATH.'application/models/Service/#table_name#Service.php',
         'transformer' => BASEPATH . 'application/models/Transformer/#table_name#Transformer.php',
         'exception' => BASEPATH . 'application/models/Exception/Business/#table_name#Exception.php',
-        'controller' => BASEPATH . 'application/modules/Admin/controller/#table_name#Controller.php'
+        'controller' => BASEPATH . 'application/modules/Admin/controllers/#table_name#Controller.php'
     ];
 
     /**
