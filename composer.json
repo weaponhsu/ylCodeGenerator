@@ -1,0 +1,24 @@
+{
+    "name": "weaponhsu/ylcodegenerator",
+    "description": "宥理yaf框架model生成器",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "weaponhsu",
+            "email": "huangxu4328@163.com"
+        }
+    ],
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "ylCodeGenerator\\": "src/"
+        }
+    }
+}
