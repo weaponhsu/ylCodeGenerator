@@ -114,7 +114,7 @@ class GeneratePdo
         try{
             $dbh = new \PDO($this->dsn, $this->username, $this->password);
 
-//            $q = $dbh->query("select `column` from `foreign_relationship` where `table` = '" . $table_name . "'");
+            $q = $dbh->query("select `column` from `foreign_relationship` where `table` = '" . $table_name . "'");
             $sql = 'SELECT * FROM tables WHERE TABLE_SCHEMA = "' . $this->db_name . '"';
             $q = $dbh->query($sql);
             if(!$q){
