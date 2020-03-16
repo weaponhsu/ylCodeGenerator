@@ -126,8 +126,14 @@ class GenerateCrud
 
             }
             $real_file_path = implode('', $file_name_array);
-        } else
-            $real_file_path = $file_path;
+        } else {
+            if (substr($file_path, strrpos($file_path, 'Controller')) !== false) {
+
+                $real_file_path = str_replace(substr($file_path, strrpos($file_path, 'Controller')), '.php', $file_path);
+            } else
+                $real_file_path = $file_path;
+
+        }
 
         if(!empty($real_file_path)){
             if(file_exists($real_file_path)){
@@ -149,7 +155,7 @@ class GenerateCrud
             fwrite($fh, $code);
             fclose($fh);
         }
-        $code = $this->__generateCode($file_path);
+//        $code = $this->__generateCode($file_path);
 //            echo $code;exit;
         return true;
     }
