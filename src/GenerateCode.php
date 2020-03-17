@@ -245,7 +245,14 @@ class GenerateCode
             $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/list\",";
             $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
             $code .= "\r\n     *     summary=\"获取" . $table_comment . "列表数据接口\",";
-            $code .= "\r\n     *     @SWG\Parameter(" .
+            $code .= "\r\n     *     @SWG\Parameter(".
+                "\r\n     *          name=\"Authorization\",".
+                "\r\n     *          description=\"Authorization 登录接口返回的jwt字段的值\",".
+                "\r\n     *          in=\"header\",".
+                "\r\n     *          required=true,".
+                "\r\n     *          type=\"string\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Parameter(" .
                 "\r\n     *          name=\"page\"," .
                 "\r\n     *          description=\"页码\",".
                 "\r\n     *          in=\"query\"," .
@@ -272,7 +279,15 @@ class GenerateCode
                 "\r\n     *          in=\"query\"," .
                 "\r\n     *          required=true," .
                 "\r\n     *          type=\"string\"" .
-                "\r\n     *     ),"."\r\n     *     @SWG\Response(".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Parameter(".
+                "\r\n     *          name=\"sign\",".
+                "\r\n     *          description=\"签名\",".
+                "\r\n     *          in=\"query\",".
+                "\r\n     *          required=true,".
+                "\r\n     *          type=\"string\"".
+                "\r\n     *     ),".
+                "\r\n     *     @SWG\Response(".
                 "\r\n     *         response=\"200\",".
                 "\r\n     *         description=\"请求成功\",".
                 "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "ListData\")".
