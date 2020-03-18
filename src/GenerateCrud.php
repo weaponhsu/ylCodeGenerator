@@ -123,17 +123,16 @@ class GenerateCrud
             }
             foreach($file_name_arr as $k => $v){
                 $file_name_array[] = strpos($file_path, 'Controllers') !== false ? ucfirst($v) : ($k == 0 ? $v : ucfirst($v));
-
             }
             $real_file_path = implode('', $file_name_array);
         } else {
-            if (substr($file_path, strrpos($file_path, 'Controller')) !== false) {
-
+            if (strrpos($file_path, 'Controller') && substr($file_path, strrpos($file_path, 'Controller')) !== false) {
                 $real_file_path = str_replace(substr($file_path, strrpos($file_path, 'Controller')), '.php', $file_path);
             } else
                 $real_file_path = $file_path;
-
         }
+
+        var_dump($real_file_path);
 
         if(!empty($real_file_path)){
             if(file_exists($real_file_path)){
@@ -143,8 +142,11 @@ class GenerateCrud
                 @rename($real_file_path, substr($copy_file_path, 0, strrpos($copy_file_path, '.')));
                 $fh = fopen($real_file_path, 'wr');
             } else {
+                $old_file_path = $file_path;
+                $file_path = $real_file_path;
                 $this->__chkDir($file_path);
                 $fh = fopen($file_path, 'x');
+                $file_path = $old_file_path;
             }
         }else{
             $this->__chkDir($file_path);

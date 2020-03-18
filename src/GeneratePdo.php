@@ -10,6 +10,7 @@ use PDOException;
 class GeneratePdo
 {
     static public $instance = null;
+    public $config = null;
     public $dsn = null;
     public $db_name = '';
     public $username = '';
@@ -24,10 +25,11 @@ class GeneratePdo
 
     private function __construct()
     {
-        $this->dsn = 'mysql:dbname=' . Config::DB_NAME . ';host=127.0.0.1;charset=utf8';
-        $this->username = Config::DB_USER;
-        $this->password = Config::DB_PASSWORD;
-        $this->db_name = Config::DB_NAME;
+        $this->config = DbConfig::getInstance('','','');
+        $this->dsn = 'mysql:dbname=' . $this->config->db_name . ';host=127.0.0.1;charset=utf8';
+        $this->username = $this->config->db_user;
+        $this->password = $this->config->db_password;
+        $this->db_name = $this->config->db_name;
     }
 
     /**
@@ -37,8 +39,8 @@ class GeneratePdo
      * @throws Exception
      */
     public function _getTableConstruct($table_name = ''){
-        $user = Config::DB_NAME;
-        $password = Config::DB_PASSWORD;
+        $user = $this->config->db_name;
+        $password = $this->config->db_password;
 
         if(strpos($table_name, 'model') !== false){
             $table_name = substr($table_name, 0, strpos($table_name, 'model'));
