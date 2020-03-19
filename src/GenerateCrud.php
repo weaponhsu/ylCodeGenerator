@@ -132,8 +132,6 @@ class GenerateCrud
                 $real_file_path = $file_path;
         }
 
-        var_dump($real_file_path);
-
         if(!empty($real_file_path)){
             if(file_exists($real_file_path)){
                 $copy_file_path = 'code_backup' . substr($real_file_path, stripos($real_file_path, '/')) . '_' . date("Y-m-d", time()) . '.php';

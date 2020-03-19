@@ -139,7 +139,7 @@ class GenerateCode
                 $code .= "\r\n     * @SWG\DELETE(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/delete\",";
                 $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
-                $code .= "\r\n     *     summary=\"编辑" . $table_comment . "接口\",";
+                $code .= "\r\n     *     summary=\"删除" . $table_comment . "接口\",";
             } else if (strpos($function_name, 'create') !== false) {
                 $code .= "\r\n     * @SWG\Post(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/create\",";
@@ -195,13 +195,6 @@ class GenerateCode
             }
 
 
-            $code .= "\r\n     *     @SWG\Parameter(";
-            $code .= "\r\n     *          name=\"sign\",";
-            $code .= "\r\n     *          description=\"签名\",";
-            $code .= "\r\n     *          in=\"formData\",";
-            $code .= "\r\n     *          required=true,";
-            $code .= "\r\n     *          type=\"string\"";
-            $code .= "\r\n     *     ),";
 
             if (strpos($function_name, 'delete') !== false) {
                 $code .= "\r\n     *     @SWG\Response(" .
@@ -209,6 +202,14 @@ class GenerateCode
                     "\r\n     *         description=\"删除成功, 没有返回结果\"" .
                     "\r\n     *     ),";
             } else {
+
+                $code .= "\r\n     *     @SWG\Parameter(";
+                $code .= "\r\n     *          name=\"sign\",";
+                $code .= "\r\n     *          description=\"签名\",";
+                $code .= "\r\n     *          in=\"formData\",";
+                $code .= "\r\n     *          required=true,";
+                $code .= "\r\n     *          type=\"string\"";
+                $code .= "\r\n     *     ),";
                 $code .= "\r\n     *     @SWG\Response(".
                     "\r\n     *         response=\"" . (strpos($function_name, 'create') !== false ? '201' : '200') . "\",".
                     "\r\n     *         description=\"请求成功\",".

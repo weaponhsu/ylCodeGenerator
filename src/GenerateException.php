@@ -16,13 +16,13 @@ class GenerateException extends GenerateCode
         ],
         'class' => 'class #class_name# extends Exception {',
         'const_variable' => [
-            '#table_name#_IS_NOT_EXISTS' => ['用户不存在', 'const', ''],
+            '#table_name#_IS_NOT_EXISTS' => ['#table_name#不存在', 'const', ''],
             '#table_name#_IS_NOT_EXISTS_NO' => ['400', 'const', ''],
-            '#table_name#_CREATE_FAILURE' => ['用户创建失败', 'const', ''],
+            '#table_name#_CREATE_FAILURE' => ['#table_name#创建失败', 'const', ''],
             '#table_name#_CREATE_FAILURE_NO' => ['422', 'const', ''],
-            '#table_name#_EDIT_FAILURE' => ['用户编辑失败', 'const', ''],
+            '#table_name#_EDIT_FAILURE' => ['#table_name#编辑失败', 'const', ''],
             '#table_name#_EDIT_FAILURE_NO' => ['422', 'const', ''],
-            '#table_name#_ID_IS_EMPTY' => ['用户编号不能为空', 'const', ''],
+            '#table_name#_ID_IS_EMPTY' => ['#table_name#编号不能为空', 'const', ''],
             '#table_name#_ID_IS_EMPTY_NO' => ['400', 'const', '']
         ]
     ];
@@ -78,6 +78,12 @@ class GenerateException extends GenerateCode
 
     public function genConstVariable($variable_name = '', $parameters_arr = [], $file_path = ''){
         $variable_name = strtoupper(str_replace('#table_name#', $this->table_name, $variable_name));
+        $table_comment = $this->_getTableComment($this->table_name);
+        if (preg_match_all('/COMMENT=\'(.*)\'/Usi', $table_comment[0][1], $arr))
+            $table_comment = $arr[1][0];
+        else
+            $table_comment = '表名获取失败';
+        $parameters_arr[0] = str_replace('#table_name#', $table_comment, $parameters_arr[0]);
         return $this->genVariable('const', [$variable_name => $parameters_arr], false);
     }
 
