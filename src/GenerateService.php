@@ -588,7 +588,7 @@ class GenerateService extends GenerateCode
             $code .= "\r\n        }";
             $code .= "\r\n        // 缓存不存在 或不需要读取缓存";
             $code .= "\r\n        else { ";
-            $code .= "\r\n            \$redis_is_exists = \$this->getList(1, count(\$update_column), 'desc', \$rule_model->primary_key_arr[0], [";
+            $code .= "\r\n            \$redis_is_exists = \$this->getList(1, count(\$update_column), 'desc', \$" . $table_name . "_model->primary_key_arr[0], [";
             $code .= "\r\n                'groupOp' => 'AND', 'rules' => [";
             $code .= "\r\n                    ['field' => \$" . $table_name . "_model->primary_key_arr[0], 'op' => 'in', 'data' => implode(',', array_column(\$update_column, \$" . $table_name . "_model->primary_key_arr[0]))]]";
             $code .= "\r\n            ]);";
