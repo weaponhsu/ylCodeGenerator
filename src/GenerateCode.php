@@ -603,7 +603,7 @@ class GenerateCode
                 $parameter = '';
             };
 
-            $code = $annotation . "    " . ($function_name == 'getInstance' ? 'static ' : '') . $type . " function ". ($type == 'private' ? '__' : ($type == 'protected' ? '_' : '')) .
+            $code = $annotation . "    " . (in_array($function_name, ['getInstance', 'boot']) ? 'static ' : '') . $type . " function ". ($type == 'private' ? '__' : ($type == 'protected' ? '_' : '')) .
                 $function_name .
                 "(" . ($function_name == 'getInstance' ? '' : $parameter) . ") {";
             $function_arr = '';

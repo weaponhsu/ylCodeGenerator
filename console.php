@@ -43,7 +43,7 @@ define('BASEPATH', realpath(dirname(__FILE__)) . '/');
 $allow_parameter_key = array('filter_column');
 
 $allowed_operation_arr = array('generate');
-$allowed_action_arr = array('crud', 'model', 'service', 'transformer', 'exception', 'controller');
+$allowed_action_arr = array('crud', 'model', 'exception', 'controller');
 
 if(empty($argv) || $argv[0] != $_SERVER['PHP_SELF'] || empty($argv[1])){
     exit('no parameters');

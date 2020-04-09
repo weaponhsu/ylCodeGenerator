@@ -16,98 +16,18 @@ class GenerateModel extends GenerateCode
         'start' => '<?php',
         'namespace' => 'models\\DAO',
         'use' => [
-            'models\Exception\DAO\ModelDriverException',
-            'models\Exception\DAO\ModelException',
-            'models\Exception\DAO\ModelReflectionException',
-            'models\Exception\DAO\ModelSqlException'
+            'Illuminate\Database\Eloquent\Model',
+            'Illuminate\Database\Capsule\Manager as Capsule',
+            'Yaf\Registry'
         ],
-        'class' => 'class #class_name# extends BaseModel{',
+        'class' => 'class #class_name# extends Model{',
         'protected_variable' => [
-            '#column#' => ['null', 'string', '字段']
+            'table' => ['#table_name#', 'string', '']
         ],
-        'public_variable' => [
-            'obj' => ['', 'string', 'DAO对象'],
-            'data' => ['', 'array', 'DAO对象数组'],
-            'meta' => ['null', 'object', '翻页对象'],
-            'page' => ['1', 'integer', '当前页'],
-            'page_size' => ['10', 'integer', '每页显示条数'],
-            'primary_key_arr' => ['', 'array', '主键数组'],
-            'auto_increment_key_arr' => ['', 'array', '自增字段数组'],
-            'unique_key_arr' => ['', 'string', '唯一字段'],
-            'instance' => ['null', 'static', '单例实例']
-        ],
-        'private_variable' => [],
         'public_function' => [
-            '__set' => [
+            'boot' => [
                 'function' => '',
-                'annotation' => 'set属性',
-                'arr' => [
-                    ['', 'string', '参数名', 'name'],
-                    ['', 'string', '参数值', 'value'],
-                ],
-                'return_annotation' => '@return $this'
-            ],
-            '__get' => [
-                'function' => '',
-                'annotation' => 'get属性',
-                'arr' => [
-                    ['', 'string', '参数名', 'name']
-                ],
-                'return_annotation' => '@return mixed'
-            ],
-            'insert' => [
-                'function' => '',
-                'annotation' => '创建#table_name#',
-                'return_annotation' => "\r\n     * @return mixed\r\n     * @throws ModelDriverException\r\n     * @throws ModelReflectionException\r\n     * @throws ModelSqlException\r\n     * @throws ModelException"
-            ],
-            'update' => [
-                'function' => '',
-                'annotation' => '编辑#table_name#',
-                'return_annotation' => "\r\n     * @return mixed\r\n     * @throws ModelDriverException\r\n     * @throws ModelReflectionException\r\n     * @throws ModelSqlException\r\n     * @throws ModelException"
-            ],
-            'delete' => [
-                'function' => '',
-                'annotation' => '删除#table_name#，需先指定主键',
-                'return_annotation' => "\r\n     * @return mixed\r\n     * @throws ModelDriverException\r\n     * @throws ModelReflectionException\r\n     * @throws ModelSqlException\r\n     * @throws ModelException"
-            ],
-            'find' => [
-                'function' => '',
-                'annotation' => '根据主键查询#table_name#，获取单条记录',
-                'arr' => [
-                    ['0', 'integer', '主键编号', 'primary_key']
-                ],
-                'return_annotation' => "@return \$this\r\n     * @throws ModelException\r\n     * @throws ModelReflectionException"
-            ],
-            'findOneBy' => [
-                'function' => '',
-                'annotation' => '根据条件数组查询#table_name#，获取多条记录',
-                'arr' => [
-                    ['', 'array', '查询条件', 'condition']
-                ],
-                'return_annotation' => "@return \$this\r\n     * @throws ModelDriverException\r\n     * @throws ModelException\r\n     * @throws ModelReflectionException\r\n     * @throws ModelSqlException"
-            ],
-            'findBy' => [
-                'function' => '',
-                'annotation' => '根据条件数组查询#table_name#，获取多条记录',
-                'arr' => [
-                    ['', 'array', '查询条件', 'condition']
-                ],
-                'return_annotation' => "@return \$this\r\n     * @throws ModelDriverException\r\n     * @throws ModelException\r\n     * @throws ModelReflectionException\r\n     * @throws ModelSqlException"
-            ],
-            'batchInsert' => [
-                'function' => '',
-                'annotation' => '批量插入#table_name#',
-                'return_annotation' => "\r\n     * @return mixed\r\n     * @throws ModelDriverException\r\n     * @throws ModelException\r\n     * @throws ModelSqlException"
-            ],
-            'batchDelete' => [
-                'function' => '',
-                'annotation' => '批量删除#table_name#',
-                'return_annotation' => "\r\n     * @throws ModelDriverException\r\n     * @throws ModelException\r\n     * @throws ModelSqlException"
-            ],
-            'genBatchUpdateSql' => [
-                'function' => '',
-                'annotation' => '生成批量生成update的sql',
-                'return_annotation' => "\r\n     * @return bool|string\r\n     * @throws ModelDriverException\r\n     * @throws ModelException\r\n     * @throws ModelSqlException"
+                'annotation' => '注册事件'
             ],
         ],
         'protected_function' => []
@@ -328,6 +248,31 @@ class GenerateModel extends GenerateCode
         return $code;
     }
 
+    protected function genModelTable($file_path) {
+        $model_name = strtolower(substr($file_path, strrpos($file_path, '/') + 1, (strrpos($file_path, '.') - 1 - strrpos($file_path, '/'))));
+        $table_name = str_replace('model', '', $model_name);
+        return "\r\n    protected \$table = '" . $table_name . "';\r\n";
+    }
+
+    protected function genBootFunctionMain($type = 'public', $parameters = [], $file_path = '') {
+        $code = "    parent::boot();";
+        $code .= "\r\n\r\n        static::created(function (\$model) {";
+        $code .= "\r\n            // 日志记录";
+        $code .= "\r\n            Registry::get('db_log')->info(get_class(\$model) . ' - created - ' . json_encode(Capsule::connection()->getQueryLog()[0]));";
+        $code .= "\r\n        });";
+        $code .= "\r\n\r\n        static::updated(function (\$model) {";
+        $code .= "\r\n            // 日志记录";
+        $code .= "\r\n            Registry::get('db_log')->info(get_class(\$model) . ' - updated - ' . json_encode(Capsule::connection()->getQueryLog()[0]));";
+        $code .= "\r\n        });";
+        $code .= "\r\n\r\n        static::deleted(function (\$model) {";
+        $code .= "\r\n            // 日志记录";
+        $code .= "\r\n            Registry::get('db_log')->info(get_class(\$model) . ' - deleted - ' . json_encode(Capsule::connection()->getQueryLog()[0]));";
+        $code .= "\r\n        });";
+
+        return $code;
+    }
+
+
     public function generatedModelCode($file_path = '') {
         $code = '';
         $column_variable_type = 'private';
@@ -359,13 +304,8 @@ class GenerateModel extends GenerateCode
                     case 'protected_variable':
                     case 'private_variable':
                         foreach($element as $variable_name => $element_arr){
-                            if($variable_name == '#column#'){
-                                $code .= $this->genModelVariable('public', [], $file_path);
-                            }else{
-                                if($variable_name == '#table_name#'){
-                                    $variable_name = strtolower(substr($file_path, strrpos($file_path, '/')+1, (strrpos($file_path, '.') - 1 - strrpos($file_path, '/'))));
-                                }
-                                $code .= $this->genVariable(substr($key, 0, stripos($key, '_')),[$variable_name => empty($element_arr) ? ['', 'string', ''] : $element_arr]);
+                            if ($variable_name == 'table') {
+                                $code .= $this->genModelTable($file_path);
                             }
 
                             if($variable_name == 'instance'){
