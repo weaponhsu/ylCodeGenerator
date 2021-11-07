@@ -131,49 +131,56 @@ class GenerateCode
             || strpos($function_name, 'delete') !== false) {
             $code .= "\r\n    /**";
             if (strpos($function_name, 'edit') !== false) {
-                $code .= "\r\n     * @SWG\Put(";
+                $code .= "\r\n     * @OA\Put(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/edit\",";
                 $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
                 $code .= "\r\n     *     summary=\"编辑" . $table_comment . "接口\",";
             } else if (strpos($function_name, 'delete') !== false) {
-                $code .= "\r\n     * @SWG\DELETE(";
+                $code .= "\r\n     * @OA\Delete(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/{id}/delete\",";
                 $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
                 $code .= "\r\n     *     summary=\"删除" . $table_comment . "接口\",";
             } else if (strpos($function_name, 'create') !== false) {
-                $code .= "\r\n     * @SWG\Post(";
+                $code .= "\r\n     * @OA\Post(";
                 $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/create\",";
                 $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
                 $code .= "\r\n     *     summary=\"创建" . $table_comment . "接口\",";
             }
+            $code .= "\r\n     *     security={{\"bearerAuth\":{}}},";
             $code .= "\r\n     *     description=\"\",";
-            $code .= "\r\n     *     @SWG\Parameter(";
+            $code .= "\r\n     *     @OA\Parameter(";
             $code .= "\r\n     *          name=\"Authorization\",";
             $code .= "\r\n     *          description=\"Authorization 登录接口返回的jwt字段的值\",";
             $code .= "\r\n     *          in=\"header\",";
-            $code .= "\r\n     *          required=true,";
-            $code .= "\r\n     *          type=\"string\"";
+            $code .= "\r\n     *          @OA\Schema(type=\"bearerAuth\")";
             $code .= "\r\n     *     ),";
+
+            $codeRequestBodyPrefix = $codeRequestBodySuffix = $codeRequestBody = "";
+            if (strpos($function_name, 'delete') === false) {
+                $codeRequestBodyPrefix .= "\r\n     *     @OA\RequestBody(";
+                $codeRequestBodyPrefix .= "\r\n     *         @OA\MediaType(";
+                $codeRequestBodyPrefix .= "\r\n     *             mediaType=\"application/x-www-form-urlencoded\",";
+                $codeRequestBodyPrefix .= "\r\n     *             @OA\Schema(";
+
+                $codeRequestBodySuffix .= "\r\n     *                 @OA\Property(property=\"sign\", description=\"签名\", type=\"string\")";
+                $codeRequestBodySuffix .= "\r\n     *             )";
+                $codeRequestBodySuffix .= "\r\n     *         )";
+                $codeRequestBodySuffix .= "\r\n     *     ),";
+            }
 
             foreach ($column_comment as $info) {
                 if (strpos($function_name, 'create') === false && $info['Key'] === 'PRI') {
-                    $code .= "\r\n     *     @SWG\Parameter(".
+                    $code .= "\r\n     *     @OA\Parameter(".
                         "\r\n     *          name=\"" . $info['Field'] . "\",".
                         "\r\n     *          description=\"/admin/" . $table_name . "/list接口返回的id字段的值\",".
                         "\r\n     *          in=\"path\",".
-                        "\r\n     *          required=true,".
-                        "\r\n     *          type=\"string\"".
+                        "\r\n     *          required=true".
                         "\r\n     *     ),";
                 }
 
-
-                if (strpos($function_name, 'delete') === false) {
-                    if (! in_array($info['Field'], ['created_by', 'updated_at', 'created_at', 'updated_by']) && $info['Type'] !== 'timestamp' && $info['Extra'] !== 'auto_increment') {
-                        $code .= "\r\n     *     @SWG\Parameter(";
-                        $code .= "\r\n     *          name=\"" . $info['Field'] . "\",";
-                        $code .= "\r\n     *          description=\"" . $info['Comment'] . "\",";
-                        $code .= "\r\n     *          in=\"formData\",";
-                        $code .= "\r\n     *          required=" . (strpos($function_name, 'create') !== false ? 'true' : 'false') . ",";
+                if (strpos($function_name, "delete") === false) {
+                    if (! in_array($info['Field'], ['created_by', 'updated_at', 'created_at', 'updated_by']) &&
+                        $info['Type'] !== 'timestamp' && $info['Extra'] !== 'auto_increment') {
                         if (isset($info['type'])) {
                             switch ($info['type']) {
                                 case 'int unsigned':
@@ -188,51 +195,46 @@ class GenerateCode
                         } else
                             $type = 'string';
 
-                        $code .= "\r\n     *          type=\"" . $type . "\"";
-                        $code .= "\r\n     *     ),";
+                        $codeRequestBody .= "\r\n     *                 @OA\Property(property=\"" . $info['Field']  . "\", type=\"" .
+                            $type . "\", description=\"" . $info['Comment'] . "\"),";
                     }
                 }
             }
-
+            $code .= $codeRequestBodyPrefix . $codeRequestBody . $codeRequestBodySuffix;
 
 
             if (strpos($function_name, 'delete') !== false) {
-                $code .= "\r\n     *     @SWG\Response(" .
+                $code .= "\r\n     *     @OA\Response(" .
                     "\r\n     *         response=\"200\"," .
                     "\r\n     *         description=\"删除成功, 没有返回结果\"" .
                     "\r\n     *     ),";
             } else {
-
-                $code .= "\r\n     *     @SWG\Parameter(";
-                $code .= "\r\n     *          name=\"sign\",";
-                $code .= "\r\n     *          description=\"签名\",";
-                $code .= "\r\n     *          in=\"formData\",";
-                $code .= "\r\n     *          required=true,";
-                $code .= "\r\n     *          type=\"string\"";
-                $code .= "\r\n     *     ),";
-                $code .= "\r\n     *     @SWG\Response(".
+                $code .= "\r\n     *     @OA\Response(".
                     "\r\n     *         response=\"" . (strpos($function_name, 'create') !== false ? '201' : '200') . "\",".
                     "\r\n     *         description=\"请求成功\",".
-                    "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "SingleData\")" .
+                    "\r\n     *         @OA\MediaType(".
+                    "\r\n     *             mediaType=\"application/json\",".
+                    "\r\n     *             @OA\Schema(ref=\"{*}/components/schemas/" . strtolower($table_name) . "SingleData\")" .
+                    "\r\n     *         )".
                     "\r\n     *     ),".
-                    "\r\n     *     @SWG\Response(".
+                    "\r\n     *     @OA\Response(".
                     "\r\n     *         response=\"422\",".
                     "\r\n     *         description=\"" . (strpos($function_name, 'edit') !== false ? "编辑" : "创建") . "失败\"".
                     "\r\n     *     ),";
             }
-            $code .= "\r\n     *     @SWG\Response(".
+            $code .= "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"400\",".
                 "\r\n     *         description=\"签名不存在或无效签名\"".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"401\",".
                 "\r\n     *         description=\"jwt无效或过期，需要登录\"".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"403\",".
                 "\r\n     *         description=\"无权访问\"".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"404\",".
                 "\r\n     *         description=\"找不到数据\"".
                 "\r\n     *     )".
@@ -242,70 +244,68 @@ class GenerateCode
 
         } else {
             $code .= "\r\n    /**";
-            $code .= "\r\n     * @SWG\Get(";
+            $code .= "\r\n     * @OA\Get(";
             $code .= "\r\n     *     path=\"/admin/" . strtolower($table_name) . "/list\",";
             $code .= "\r\n     *     tags={\"" . $table_comment . "\"},";
             $code .= "\r\n     *     summary=\"获取" . $table_comment . "列表数据接口\",";
-            $code .= "\r\n     *     @SWG\Parameter(".
+            $code .= "\r\n     *     security={{\"bearerAuth\":{}}},";
+            $code .= "\r\n     *     @OA\Parameter(".
                 "\r\n     *          name=\"Authorization\",".
                 "\r\n     *          description=\"Authorization 登录接口返回的jwt字段的值\",".
                 "\r\n     *          in=\"header\",".
-                "\r\n     *          required=true,".
-                "\r\n     *          type=\"string\"".
+                "\r\n     *          @OA\Schema(type=\"bearerAuth\")".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Parameter(" .
+                "\r\n     *     @OA\Parameter(" .
                 "\r\n     *          name=\"page\"," .
                 "\r\n     *          description=\"页码\",".
                 "\r\n     *          in=\"query\"," .
-                "\r\n     *          required=true,".
-                "\r\n     *          type=\"string\"" .
+                "\r\n     *          required=true".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Parameter(".
+                "\r\n     *     @OA\Parameter(".
                 "\r\n     *          name=\"page_size\",".
                 "\r\n     *          description=\"每页显示条数\",".
                 "\r\n     *          in=\"query\",".
-                "\r\n     *          required=true,".
-                "\r\n     *          type=\"string\"".
+                "\r\n     *          required=true".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Parameter(".
+                "\r\n     *     @OA\Parameter(".
                 "\r\n     *          name=\"sort\",".
                 "\r\n     *          description=\"排序方式 可选值: desc|asc\"," .
                 "\r\n     *          in=\"query\"," .
-                "\r\n     *          required=true," .
-                "\r\n     *          type=\"string\"" .
+                "\r\n     *          required=true" .
                 "\r\n     *     )," .
-                "\r\n     *     @SWG\Parameter(" .
+                "\r\n     *     @OA\Parameter(" .
                 "\r\n     *          name=\"order\"," .
                 "\r\n     *          description=\"排序字段 可选值: id\"," .
                 "\r\n     *          in=\"query\"," .
-                "\r\n     *          required=true," .
-                "\r\n     *          type=\"string\"" .
+                "\r\n     *          required=true" .
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Parameter(".
+                "\r\n     *     @OA\Parameter(".
                 "\r\n     *          name=\"sign\",".
                 "\r\n     *          description=\"签名\",".
                 "\r\n     *          in=\"query\",".
-                "\r\n     *          required=true,".
-                "\r\n     *          type=\"string\"".
+                "\r\n     *          required=true".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"200\",".
                 "\r\n     *         description=\"请求成功\",".
-                "\r\n     *         @SWG\Schema(type=\"object\", ref=\"{*}/definitions/" . strtolower($table_name) . "ListData\")".
+                "\r\n     *         @OA\MediaType(".
+                "\r\n     *             mediaType=\"application/json\",".
+                "\r\n     *             @OA\Schema(ref=\"{*}/components/schemas/" . strtolower($table_name) . "ListData\")" .
+                "\r\n     *         )".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"400\",".
                 "\r\n     *         description=\"签名不存在或无效签名\"".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"401\",".
                 "\r\n     *         description=\"jwt无效或过期，需要登录\"".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"403\",".
                 "\r\n     *         description=\"无权访问\"".
                 "\r\n     *     ),".
-                "\r\n     *     @SWG\Response(".
+                "\r\n     *     @OA\Response(".
                 "\r\n     *         response=\"404\",".
                 "\r\n     *         description=\"找不到数据\"".
                 "\r\n     *     )".
@@ -319,7 +319,60 @@ class GenerateCode
 //        exit();
     }
 
-    public function genSwgAnnotation($table_name = ''){
+    public function genSwgAnnotation($table_name = "") {
+        $code = '';
+        if(! empty($table_name)){
+            $table_fields = $this->_getTableConstruct(strtolower($table_name));
+            if(!empty($table_fields)){
+                $code = "*#/**";
+                $code .= "*# * @OA\\Schema(";
+                $code .= "*# *     schema=\"" . strtolower($table_name) . "ListData\",";
+                $code .= "*# *     @OA\\Property(property=\"errno\", type=\"integer\", format=\"int32\", description=\"编码\"),";
+                $code .= "*# *     @OA\\Property(property=\"errmsg\", type=\"string\", format=\"string\", description=\"错误提示信息\"),";
+                $code .= "*# *     @OA\\Property(property=\"result\", type=\"object\", ref=\"{*}/components/schemas/" . strtolower($table_name) . "ListObj\")";
+                $code .= "*# * ),";
+                $code .= "*# * @OA\\Schema(";
+                $code .= "*# *     schema=\"" . strtolower($table_name) . "ListObj\",";
+                $code .= "*# *     @OA\\Property(property=\"data\", type=\"object\", ref=\"{*}/components/schemas/" . strtolower($table_name) . "List\"), ";
+                $code .= "*# *     @OA\\Property(property=\"meta\", type=\"object\", ref=\"{*}/components/schemas/meta\")";
+                $code .= "*# * ),";
+                $code .= "*# * @OA\\Schema(";
+                $code .= "*# *     schema=\"" . strtolower($table_name) . "List\",";
+                $code .= "*# *     type=\"array\", ";
+                $code .= "*# *     @OA\\Items(ref=\"{*}/components/schemas/" . strtolower($table_name) . "Single\"),";
+                $code .= "*# * ),";
+                $code .= "*# * @OA\\Schema(";
+                $code .= "*# *     schema=\"" . strtolower($table_name) . "SingleData\",";
+                $code .= "*# *     @OA\\Property(property=\"errno\", type=\"integer\", format=\"int32\", description=\"编码\"),";
+                $code .= "*# *     @OA\\Property(property=\"errmsg\", type=\"string\", format=\"string\", description=\"错误提示信息\"),";
+                $code .= "*# *     @OA\\Property(property=\"result\", type=\"object\", ref=\"{*}/components/schemas/" . strtolower($table_name) . "SingleObj\")";
+                $code .= "*# * ),";
+                $code .= "*# * @OA\\Schema(";
+                $code .= "*# *     schema=\"" . strtolower($table_name) . "SingleObj\", ";
+                $code .= "*# *     @OA\Property(property=\"data\", type=\"object\", ref=\"{*}/components/schemas/" . strtolower($table_name) . "Single\"),";
+                $code .= "*# * ),";
+                $code .= "*# * @OA\\Schema(";
+                $code .= "*# *     schema=\"" . strtolower($table_name) . "Single\",";
+                foreach ($table_fields as $idx => $val){
+                    switch ($val["Type"]){
+                        case strpos($val["Type"], "int") !== false:
+                            $code .= "*# *          @OA\\Property(property=\"" . $val["Field"] . "\", type=\"integer\", format=\"int32\", ";
+                            break;
+                        default:
+                            $code .= "*# *          @OA\\Property(property=\"" . $val["Field"] . "\", type=\"string\", format=\"string\", ";
+                            break;
+                    }
+                    $code .= " description=\"" . $val["Comment"] . "\"),";
+                }
+                $code .= "*# * )";
+                $code .= "*# */";
+            }
+        }
+
+        return str_replace('*#', "\r\n", $code);
+    }
+
+    public function genSwgAnnotationV2($table_name = ''){
         $code = '';
         if(! empty($table_name)){
             $table_fields = $this->_getTableConstruct(strtolower($table_name));
@@ -1003,7 +1056,7 @@ class GenerateCode
                         $foreign_relationship_table_prefix[$value['column']] =
                             substr($comment_arr[1][0], 0, 1) .
                             (count($foreign_relationship_table_prefix_match_arr[$comment_arr[1][0]]) - 1 > 0 ?
-                                '_' . count($foreign_relationship_table_prefix_match_arr[$comment_arr[1][0]]) - 1 :
+                                ('_' + count($foreign_relationship_table_prefix_match_arr[$comment_arr[1][0]]) - 1) :
                                 ''
                             );
                     }
